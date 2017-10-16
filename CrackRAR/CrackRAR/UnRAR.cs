@@ -12,19 +12,50 @@ namespace CrackRAR
 
         public enum OpenMode : uint
         {
-            RAR_OM_LIST,
-            RAR_OM_EXTRACT,
-            RAR_OM_LIST_INCSPELIT
+            RAR_OM_LIST = 0,
+            RAR_OM_EXTRACT = 1,
+            RAR_OM_LIST_INCSPELIT = 2
+        }
+
+        public enum CallbackMessages : uint
+        {
+            UCM_CHANGEVOLUME,
+            UCM_PROCESSDATA,
+            UCM_NEEDPASSWORD,
+            UCM_CHANGEVOLUMEW,
+            UCM_NEEDPASSWORDW
+        };
+
+        //public enum RARError : uint
+        //{
+
+        //}
+
+        public enum Operation : int
+        {
+            RAR_SKIP = 0,
+            RAR_TEST = 1,
+            RAR_EXTRACT = 2
         }
 
         public enum OpenResult : uint
         {
             SUCCESS = 0,
-            ERAR_NO_MEMORY,
-            ERAR_BAD_DATA,
-            ERAR_UNKNOWN_FORMAT,
-            ERAR_EOPEN,
-            ERAR_BAD_PASSWORD
+            ERAR_END_ARCHIVE = 10,
+            ERAR_NO_MEMORY = 11,
+            ERAR_BAD_DATA = 12,
+            ERAR_BAD_ARCHIVE = 13,
+            ERAR_UNKNOWN_FORMAT = 14,
+            ERAR_EOPEN = 15,
+            ERAR_ECREATE = 16,
+            ERAR_ECLOSE = 17,
+            ERAR_EREAD = 18,
+            ERAR_EWRITE = 19,
+            ERAR_SMALL_BUF = 20,
+            ERAR_UNKNOWN = 21,
+            ERAR_MISSING_PASSWORD = 22,
+            ERAR_EREFERENCE = 23,
+            ERAR_BAD_PASSWORD = 24
         }
 
         [DllImport("UnRAR64.dll")]
@@ -37,12 +68,48 @@ namespace CrackRAR
         public static extern int RARReadHeaderEx(IntPtr hArcData, RARHeaderDataEx HeaderData);
 
         [DllImport("UnRAR64.dll")]
-        public static extern int RARProcessFileW(IntPtr hArcData, int Operation, string DestPath, string DestName);
+        public static extern int RARProcessFileW(IntPtr hArcData, int Operation, [MarshalAs(UnmanagedType.LPStr)] string DestPath, [MarshalAs(UnmanagedType.LPStr)] string DestName);
 
         //[DllImport("UnRAR64.dll")]
         //public static extern int CallbackProc(uint msg, IntPtr UserData, IntPtr P1, IntPtr P2);
 
         public delegate int UnRARCallBack(uint msg, IntPtr UserData, IntPtr P1, IntPtr P2);
+
+        public static int CrackPassword(uint msg, IntPtr UserData, IntPtr P1, IntPtr P2)
+        {
+            Console.WriteLine("calling callback func");
+            CallbackMessages callbackMsg = (CallbackMessages) msg;
+            switch (callbackMsg)
+            {
+                case CallbackMessages.UCM_CHANGEVOLUME:
+                    throw new NotImplementedException("Change volume not implemented.");
+                    break;
+
+                case CallbackMessages.UCM_CHANGEVOLUMEW:
+                    throw new NotImplementedException("Change volume W not implemented.");
+                    break;
+
+                case CallbackMessages.UCM_PROCESSDATA:
+                    Console.WriteLine("process data");
+                    return 1;
+                    break;
+
+
+                case CallbackMessages.UCM_NEEDPASSWORD:
+                case CallbackMessages.UCM_NEEDPASSWORDW:
+                    Console.WriteLine("Need password");
+                    P1 = UserData;
+                    P2 = (IntPtr) Marshal.PtrToStringUni(P1).Length;
+                    return 1;
+                    break;
+
+                default:
+                    Console.WriteLine("default case");
+                    break;
+            }
+            Console.WriteLine("End of callback function");
+            return -1;
+        }
 
         public struct RAROpenArchiveDataEx
         {

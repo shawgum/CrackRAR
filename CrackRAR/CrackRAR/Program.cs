@@ -16,13 +16,14 @@ namespace CrackRAR
             UnRAR.RAROpenArchiveDataEx openData = new UnRAR.RAROpenArchiveDataEx
             {
                 ArcName = null,
-                ArcNameW = "password1234.rar" + '\0',
-                OpenMode = 0,
-                Callback = null,
-                UserData = new IntPtr(123)
+                ArcNameW = @"C:\Users\shoa\Desktop\nopassword.rar",
+                OpenMode = (uint)OpenMode.RAR_OM_EXTRACT,
+                Callback = CrackPassword,
+                UserData = Marshal.StringToHGlobalUni("123")
             };
 
             var handle = RAROpenArchiveEx(ref openData);
+            OpenResult result = (OpenResult) RARProcessFileW(handle, (int) Operation.RAR_EXTRACT, null, null);
 
             Console.ReadKey();
         }
